@@ -2,6 +2,7 @@ package org.example.wedevelop.core.saver;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import org.example.wedevelop.constant.AppConstant;
 import org.example.wedevelop.exception.BusinessException;
 import org.example.wedevelop.exception.ErrorCode;
 import org.example.wedevelop.model.enums.CodeGenTypeEnum;
@@ -13,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 public abstract class CodeFileSaverTemplate<T> {
 
     // 文件保存目录
-    private static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + "/tmp/code_output";
+    private static final String FILE_SAVE_ROOT_DIR = AppConstant.CODE_OUTPUT_ROOT_DIR;
 
     /**
      * 模板方法：保存代码的标准流程（使用 appId）
