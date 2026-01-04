@@ -1,60 +1,56 @@
 <template>
-  <div class="register-page">
-    <div class="register-container">
-      <a-card class="register-card" :bordered="false">
+  <div class="login-page">
+    <div class="login-container">
+      <a-card class="login-card" :bordered="false">
         <div class="card-header">
           <div class="logo-wrapper">
             <div class="logo-circle"></div>
           </div>
           <div class="title">用户注册</div>
-          <div class="subtitle">加入 WeDevelop，开启开发之旅</div>
+          <div class="subtitle">欢迎加入 WeDevelop</div>
         </div>
-        <a-form :model="form" :rules="rules" layout="vertical" @finish="onSubmit" class="register-form">
+        <a-form :model="form" :rules="rules" layout="vertical" @finish="onSubmit" class="login-form">
           <a-form-item label="账号" name="userAccount" required>
-            <a-input
-              v-model:value="form.userAccount"
-              placeholder="请输入账号"
-              allow-clear
+            <a-input 
+              v-model:value="form.userAccount" 
+              placeholder="请输入账号" 
+              allow-clear 
               size="large"
               class="custom-input"
             />
           </a-form-item>
           <a-form-item label="密码" name="userPassword" required>
-            <a-input-password
-              v-model:value="form.userPassword"
-              placeholder="请输入密码"
-              allow-clear
+            <a-input-password 
+              v-model:value="form.userPassword" 
+              placeholder="请输入密码" 
+              allow-clear 
               size="large"
               class="custom-input"
             />
           </a-form-item>
           <a-form-item label="确认密码" name="checkPassword" required>
-            <a-input-password
-              v-model:value="form.checkPassword"
-              placeholder="请再次输入密码"
-              allow-clear
+            <a-input-password 
+              v-model:value="form.checkPassword" 
+              placeholder="请确认密码" 
+              allow-clear 
               size="large"
               class="custom-input"
             />
           </a-form-item>
-          <CaptchaInput
-            ref="captchaRef"
-            v-model="form.captcha"
-            @validate="handleCaptchaValidate"
-          />
+
           <a-form-item>
             <a-space direction="vertical" style="width: 100%">
-              <a-button
-                type="primary"
-                html-type="submit"
-                :loading="submitting"
-                block
+              <a-button 
+                type="primary" 
+                html-type="submit" 
+                :loading="submitting" 
+                block 
                 size="large"
-                class="register-button"
+                class="login-button"
               >
                 注册
               </a-button>
-              <a-button type="link" block @click="toLogin" class="login-link">
+              <a-button type="link" block @click="toLogin" class="register-link">
                 已有账号？去登录
               </a-button>
             </a-space>
@@ -69,19 +65,15 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { register } from '@/api/userController.ts'
-import CaptchaInput from '@/components/CaptchaInput.vue'
+import { userRegister } from '@/api/userController.ts'
 
 const router = useRouter()
 const submitting = ref(false)
-const captchaRef = ref<InstanceType<typeof CaptchaInput> | null>(null)
-const captchaValid = ref(false)
 
-const form = reactive<API.UserRegisterRequest & { captcha?: string }>({
+const form = reactive<API.UserRegisterRequest>({
   userAccount: '',
   userPassword: '',
   checkPassword: '',
-  captcha: '',
 })
 
 const rules = {
@@ -95,42 +87,30 @@ const rules = {
   ],
   checkPassword: [
     { required: true, message: '请确认密码' },
-    {
-      validator: async (_: any, value: string) => {
-        if (!value) return Promise.reject('请确认密码')
-        if (value !== form.userPassword) return Promise.reject('两次输入的密码不一致')
+    { min: 6, message: '密码至少 6 位' },
+    { 
+      validator: (_rule: any, value: string) => {
+        if (value && value !== form.userPassword) {
+          return Promise.reject('两次输入密码不一致')
+        }
         return Promise.resolve()
       },
-      trigger: ['change', 'blur'],
+      trigger: 'blur'
     },
   ],
 }
 
-const handleCaptchaValidate = (isValid: boolean) => {
-  captchaValid.value = isValid
-}
-
 const onSubmit = async () => {
   if (submitting.value) return
-
-  // 验证验证码
-  if (!captchaRef.value?.validate()) {
-    message.error('验证码错误，请重新输入')
-    captchaRef.value?.refresh()
-    return
-  }
-
+  
   submitting.value = true
   try {
-    const { captcha, ...registerData } = form
-    const res = await register(registerData)
+    const res = await userRegister(form)
     if (res.data.code === 0) {
-      message.success('注册成功，请登录')
-      router.replace('/user/login')
+      message.success('注册成功')
+      router.push('/user/login')
     } else {
       message.error(res.data.message || '注册失败')
-      // 注册失败后刷新验证码
-      captchaRef.value?.refresh()
     }
   } finally {
     submitting.value = false
@@ -143,7 +123,7 @@ const toLogin = () => {
 </script>
 
 <style scoped>
-.register-page {
+.login-page {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,17 +132,17 @@ const toLogin = () => {
   position: relative;
 }
 
-.register-container {
+.login-container {
   width: 100%;
   max-width: 420px;
   position: relative;
   z-index: 1;
 }
 
-.register-card {
+.login-card {
   width: 100%;
   border-radius: 20px;
-  box-shadow:
+  box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
@@ -170,9 +150,9 @@ const toLogin = () => {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.register-card:hover {
+.login-card:hover {
   transform: translateY(-4px);
-  box-shadow:
+  box-shadow: 
     0 16px 48px rgba(59, 130, 246, 0.12),
     0 4px 12px rgba(0, 0, 0, 0.06);
 }
@@ -252,7 +232,7 @@ const toLogin = () => {
   margin-top: 4px;
 }
 
-.register-form {
+.login-form {
   margin-top: 8px;
 }
 
@@ -280,7 +260,7 @@ const toLogin = () => {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.register-button {
+.login-button {
   height: 48px;
   border-radius: 12px;
   font-size: 16px;
@@ -291,34 +271,34 @@ const toLogin = () => {
   transition: all 0.3s ease;
 }
 
-.register-button:hover {
+.login-button:hover {
   background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
   transform: translateY(-2px);
 }
 
-.register-button:active {
+.login-button:active {
   transform: translateY(0);
 }
 
-.login-link {
+.register-link {
   color: #64748b;
   font-size: 14px;
   padding: 8px 0;
   transition: color 0.3s ease;
 }
 
-.login-link:hover {
+.register-link:hover {
   color: #3b82f6;
 }
 
 /* 响应式设计 */
 @media (max-width: 480px) {
-  .register-page {
+  .login-page {
     padding: 20px 16px;
   }
 
-  .register-card {
+  .login-card {
     border-radius: 16px;
   }
 

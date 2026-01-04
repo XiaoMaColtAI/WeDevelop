@@ -11,35 +11,31 @@
         </div>
         <a-form :model="form" :rules="rules" layout="vertical" @finish="onSubmit" class="login-form">
           <a-form-item label="账号" name="userAccount" required>
-            <a-input
-              v-model:value="form.userAccount"
-              placeholder="请输入账号"
-              allow-clear
+            <a-input 
+              v-model:value="form.userAccount" 
+              placeholder="请输入账号" 
+              allow-clear 
               size="large"
               class="custom-input"
             />
           </a-form-item>
           <a-form-item label="密码" name="userPassword" required>
-            <a-input-password
-              v-model:value="form.userPassword"
-              placeholder="请输入密码"
-              allow-clear
+            <a-input-password 
+              v-model:value="form.userPassword" 
+              placeholder="请输入密码" 
+              allow-clear 
               size="large"
               class="custom-input"
             />
           </a-form-item>
-          <CaptchaInput
-            ref="captchaRef"
-            v-model="form.captcha"
-            @validate="handleCaptchaValidate"
-          />
+
           <a-form-item>
             <a-space direction="vertical" style="width: 100%">
-              <a-button
-                type="primary"
-                html-type="submit"
-                :loading="submitting"
-                block
+              <a-button 
+                type="primary" 
+                html-type="submit" 
+                :loading="submitting" 
+                block 
                 size="large"
                 class="login-button"
               >
@@ -54,8 +50,6 @@
       </a-card>
     </div>
   </div>
-  <!-- 调试：全局登录用户 -->
-  <!-- {{ JSON.stringify(loginUserStore.loginUser) }} -->
 </template>
 
 <script setup lang="ts">
@@ -64,19 +58,17 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { userLogin, getLoginUser } from '@/api/userController.ts'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
-import CaptchaInput from '@/components/CaptchaInput.vue'
+
 
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
 
 const submitting = ref(false)
-const captchaRef = ref<InstanceType<typeof CaptchaInput> | null>(null)
-const captchaValid = ref(false)
 
-const form = reactive<API.UserLoginRequest & { captcha?: string }>({
+
+const form = reactive<API.UserLoginRequest>({
   userAccount: '',
   userPassword: '',
-  captcha: '',
 })
 
 const rules = {
@@ -90,24 +82,13 @@ const rules = {
   ],
 }
 
-const handleCaptchaValidate = (isValid: boolean) => {
-  captchaValid.value = isValid
-}
-
 const onSubmit = async () => {
   if (submitting.value) return
-
-  // 验证验证码
-  if (!captchaRef.value?.validate()) {
-    message.error('验证码错误，请重新输入')
-    captchaRef.value?.refresh()
-    return
-  }
-
+  
+  
   submitting.value = true
   try {
-    const { captcha, ...loginData } = form
-    const res = await userLogin(loginData)
+    const res = await userLogin(form)
     if (res.data.code === 0) {
       // 登录成功后，刷新并写入全局登录用户
       const me = await getLoginUser()
@@ -119,8 +100,7 @@ const onSubmit = async () => {
       router.replace('/')
     } else {
       message.error(res.data.message || '登录失败')
-      // 登录失败后刷新验证码
-      captchaRef.value?.refresh()
+
     }
   } finally {
     submitting.value = false
@@ -152,7 +132,7 @@ const toRegister = () => {
 .login-card {
   width: 100%;
   border-radius: 20px;
-  box-shadow:
+  box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
@@ -162,7 +142,7 @@ const toRegister = () => {
 
 .login-card:hover {
   transform: translateY(-4px);
-  box-shadow:
+  box-shadow: 
     0 16px 48px rgba(59, 130, 246, 0.12),
     0 4px 12px rgba(0, 0, 0, 0.06);
 }
