@@ -1,6 +1,8 @@
 package org.example.wedevelop.ai;
 
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
 import org.example.wedevelop.ai.model.HtmlCodeResult;
 import org.example.wedevelop.ai.model.MultiFileCodeResult;
 import reactor.core.publisher.Flux;
@@ -42,4 +44,14 @@ public interface AiCodeGeneratorService {
      */
     @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
     Flux<String> generateMultiFileCodeStream(String userMessage);
+
+    /**
+     * 生成HTML代码
+     *
+     * @param memoryId
+     * @param userMessage
+     * @return
+     */
+    HtmlCodeResult generateHtmlCode(@MemoryId int memoryId, @UserMessage String userMessage);
+
 }
