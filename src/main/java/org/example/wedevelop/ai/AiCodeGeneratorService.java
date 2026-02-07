@@ -54,4 +54,6 @@ public interface AiCodeGeneratorService {
      */
     HtmlCodeResult generateHtmlCode(@MemoryId int memoryId, @UserMessage String userMessage);
 
+    @SystemMessage(fromResource = "prompt/codegen-vue-project-system-prompt.txt")
+    Flux<String> generateVueProjectCodeStream(@MemoryId long appId, @UserMessage String userMessage);
 }
