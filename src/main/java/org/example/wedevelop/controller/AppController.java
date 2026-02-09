@@ -24,7 +24,6 @@ import org.example.wedevelop.service.UserService;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.example.wedevelop.model.entity.App;
 import org.example.wedevelop.service.AppService;
 import reactor.core.publisher.Flux;
@@ -43,7 +42,7 @@ import java.util.Map;
 @RequestMapping("/app")
 public class AppController {
 
-    @Autowired
+    @Resource
     private AppService appService;
 
     @Resource
@@ -70,8 +69,8 @@ public class AppController {
         app.setUserId(loginUser.getId());
         // 应用名称暂时为 initPrompt 前 12 位
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
-        // 暂时设置为多文件生成
-        app.setCodeGenType(CodeGenTypeEnum.MULTI_FILE.getValue());
+        // 暂时设置为 VUE 工程生成
+        app.setCodeGenType(CodeGenTypeEnum.VUE_PROJECT.getValue());
         // 插入数据库
         boolean result = appService.save(app);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -119,7 +118,7 @@ public class AppController {
         long id = appUpdateRequest.getId();
         // 判断是否存在
         App oldApp = appService.getById(id);
-        ThrowUtils.throwIf(oldApp == null, ErrorCode.NO_AUTH_ERROR);
+        ThrowUtils.throwIf(oldApp == null, ErrorCode.NOT_FOUND_ERROR);
         // 仅本人可更新
         if (!oldApp.getUserId().equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
@@ -331,13 +330,17 @@ public class AppController {
      */
     @PostMapping("/deploy")
     public BaseResponse<String> deployApp(@RequestBody AppDeployRequest appDeployRequest, HttpServletRequest request) {
+        // 检查部署请求是否为空
         ThrowUtils.throwIf(appDeployRequest == null, ErrorCode.PARAMS_ERROR);
+        // 获取应用 ID
         Long appId = appDeployRequest.getAppId();
+        // 检查应用 ID 是否为空
         ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用 ID 不能为空");
         // 获取当前登录用户
         User loginUser = userService.getLoginUser(request);
         // 调用服务部署应用
         String deployUrl = appService.deployApp(appId, loginUser);
+        // 返回部署 URL
         return ResultUtils.success(deployUrl);
     }
 }

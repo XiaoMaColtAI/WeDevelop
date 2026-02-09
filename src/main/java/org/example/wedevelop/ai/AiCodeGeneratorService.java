@@ -2,6 +2,7 @@ package org.example.wedevelop.ai;
 
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.UserMessage;
 import org.example.wedevelop.ai.model.HtmlCodeResult;
 import org.example.wedevelop.ai.model.MultiFileCodeResult;
@@ -46,14 +47,12 @@ public interface AiCodeGeneratorService {
     Flux<String> generateMultiFileCodeStream(String userMessage);
 
     /**
-     * 生成HTML代码
+     * 生成 Vue 项目代码（流式）
      *
-     * @param memoryId
+     * @param appId
      * @param userMessage
      * @return
      */
-    HtmlCodeResult generateHtmlCode(@MemoryId int memoryId, @UserMessage String userMessage);
-
     @SystemMessage(fromResource = "prompt/codegen-vue-project-system-prompt.txt")
-    Flux<String> generateVueProjectCodeStream(@MemoryId long appId, @UserMessage String userMessage);
+    TokenStream generateVueProjectCodeStream(@MemoryId long appId, @UserMessage String userMessage);
 }
