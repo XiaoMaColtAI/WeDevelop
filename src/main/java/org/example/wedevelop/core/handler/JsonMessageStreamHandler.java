@@ -4,8 +4,11 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.example.wedevelop.ai.model.message.*;
+import org.example.wedevelop.constant.AppConstant;
+import org.example.wedevelop.core.builder.VueProjectBuilder;
 import org.example.wedevelop.model.entity.User;
 import org.example.wedevelop.model.enums.ChatHistoryMessageTypeEnum;
 import org.example.wedevelop.service.ChatHistoryService;
@@ -22,6 +25,9 @@ import java.util.Set;
 @Slf4j
 @Component
 public class JsonMessageStreamHandler {
+
+    @Resource
+    private VueProjectBuilder vueProjectBuilder;
 
     /**
      * 处理 TokenStream（VUE_PROJECT）
@@ -48,10 +54,13 @@ public class JsonMessageStreamHandler {
                     // 流式响应完成后，添加 AI 消息到对话历史
                     String aiResponse = chatHistoryStringBuilder.toString();
                     chatHistoryService.addChatMessage(appId, aiResponse, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
+                    // 异步构造 Vue 项目
+                    String projectPath = AppConstant.CODE_OUTPUT_ROOT_DIR + "/vue_project_" + appId;
+                    vueProjectBuilder.buildProjectAsync(projectPath);
                 })
                 .doOnError(error -> {
-                    // 如果 AI 回复失败，也要记录错误信息
-                    String errorMessage = "AI 回复失败：" + error.getMessage();
+                    // 如果AI回复失败，也要记录错误消息
+                    String errorMessage = "AI回复失败: " + error.getMessage();
                     chatHistoryService.addChatMessage(appId, errorMessage, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
                 });
     }

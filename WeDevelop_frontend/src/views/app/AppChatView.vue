@@ -24,7 +24,7 @@
     <!-- 主要内容区域 -->
     <div class="main-content">
       <!-- 左侧对话区域 -->
-      <div class="chat-section">
+      <div class="chat-section" :style="{ flex: `0 0 ${chatSectionWidth}%` }">
         <!-- 消息区域 -->
         <div class="messages-container" ref="messagesContainer">
           <!-- 加载更多按钮 -->
@@ -99,8 +99,16 @@
         </div>
       </div>
 
+      <!-- 分隔条 - 可拖拽调节宽度 -->
+      <div
+        ref="resizerRef"
+        class="resizer"
+        @mousedown="handleResizeStart"
+        :class="{ resizing: isResizing }"
+      ></div>
+
       <!-- 右侧网页展示区域 -->
-      <div class="preview-section">
+      <div class="preview-section" :style="{ flex: `1 1 ${100 - chatSectionWidth}%` }">
         <div class="preview-header">
           <h3>生成后的网页展示</h3>
           <div class="preview-actions">
@@ -204,16 +212,10 @@ const hasMoreHistory = ref(false)
 const lastCreateTime = ref<string>()
 const historyLoaded = ref(false)
 
-// 自动调整文本框高度
-const adjustTextareaHeight = async () => {
-  await nextTick()
-  if (userInputTextareaRef.value) {
-    // 重置高度以获取正确的滚动高度
-    userInputTextareaRef.value.style.height = 'auto'
-    // 设置高度为滚动高度加上一些边距
-    userInputTextareaRef.value.style.height = `${userInputTextareaRef.value.scrollHeight}px`
-  }
-}
+// 分隔条拖拽相关
+const chatSectionWidth = ref<number>(40) // 默认左侧占 40%
+const isResizing = ref(false)
+const resizerRef = ref<HTMLElement>()
 
 // 预览相关
 const previewUrl = ref('')
@@ -327,6 +329,10 @@ const fetchAppInfo = async () => {
       ) {
         await sendInitialMessage(appInfo.value.initPrompt)
       }
+      
+      // 滚动到对话底部
+      await nextTick()
+      scrollToBottom()
     } else {
       message.error('获取应用信息失败')
       router.push('/')
@@ -360,6 +366,17 @@ const sendInitialMessage = async (prompt: string) => {
   // 开始生成
   isGenerating.value = true
   await generateCode(prompt, aiMessageIndex)
+}
+
+// 自动调整文本框高度
+const adjustTextareaHeight = async () => {
+  await nextTick()
+  if (userInputTextareaRef.value) {
+    // 重置高度以获取正确的滚动高度
+    userInputTextareaRef.value.style.height = 'auto'
+    // 设置高度为滚动高度加上一些边距
+    userInputTextareaRef.value.style.height = `${userInputTextareaRef.value.scrollHeight}px`
+  }
 }
 
 // 发送消息
@@ -576,6 +593,37 @@ const deleteApp = async () => {
   }
 }
 
+// 分隔条拖拽处理
+const handleResizeStart = (e: MouseEvent) => {
+  isResizing.value = true
+  document.addEventListener('mousemove', handleResizeMove)
+  document.addEventListener('mouseup', handleResizeEnd)
+  e.preventDefault()
+}
+
+const handleResizeMove = (e: MouseEvent) => {
+  if (!isResizing.value) return
+
+  const mainContent = document.querySelector('.main-content') as HTMLElement
+  if (!mainContent) return
+
+  const rect = mainContent.getBoundingClientRect()
+  const containerWidth = mainContent.clientWidth
+  // 计算鼠标相对于容器的位置
+  const offsetX = e.clientX - rect.left
+  // 计算百分比（分隔条宽度很小，可以忽略不计）
+  const newWidth = (offsetX / containerWidth) * 100
+
+  // 限制在 20% 到 80% 之间，确保两侧都有足够的显示空间
+  chatSectionWidth.value = Math.max(20, Math.min(80, newWidth))
+}
+
+const handleResizeEnd = () => {
+  isResizing.value = false
+  document.removeEventListener('mousemove', handleResizeMove)
+  document.removeEventListener('mouseup', handleResizeEnd)
+}
+
 // 页面加载时获取应用信息
 onMounted(() => {
   fetchAppInfo()
@@ -583,18 +631,25 @@ onMounted(() => {
 
 // 清理资源
 onUnmounted(() => {
+  // 清理拖拽事件监听器
+  document.removeEventListener('mousemove', handleResizeMove)
+  document.removeEventListener('mouseup', handleResizeEnd)
   // EventSource 会在组件卸载时自动清理
 })
 </script>
 
 <style scoped>
 #appChatPage {
-  height: 100vh;
+  position: fixed;
+  top: 64px; /* 顶部导航栏高度 */
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   padding: 16px;
   background: #fdfdfd;
-  overflow: hidden;
+  overflow: hidden; /* 禁止外层滚动 */
 }
 
 /* 顶部栏 */
@@ -603,6 +658,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
+  flex-shrink: 0; /* 防止顶部栏被压缩 */
 }
 
 .header-left {
@@ -627,20 +683,55 @@ onUnmounted(() => {
 .main-content {
   flex: 1;
   display: flex;
-  gap: 16px;
+  gap: 0;
   padding: 8px;
   overflow: hidden;
+  min-height: 0; /* 确保flex子元素可以正确收缩 */
 }
 
 /* 左侧对话区域 */
 .chat-section {
-  flex: 2;
   display: flex;
   flex-direction: column;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  min-width: 0; /* 允许 flex 子元素收缩 */
+}
+
+/* 分隔条 */
+.resizer {
+  width: 8px;
+  background: transparent;
+  cursor: col-resize;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.resizer:hover {
+  background: #e8e8e8;
+}
+
+.resizer.resizing {
+  background: #1890ff;
+}
+
+.resizer::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 40px;
+  background: #d9d9d9;
+  border-radius: 2px;
+}
+
+.resizer:hover::before {
+  background: #1890ff;
 }
 
 .messages-container {
@@ -727,13 +818,12 @@ onUnmounted(() => {
 
 /* 右侧预览区域 */
 .preview-section {
-  flex: 3;
   display: flex;
   flex-direction: column;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  min-width: 0; /* 允许 flex 子元素收缩 */
 }
 
 .preview-header {
@@ -802,12 +892,20 @@ onUnmounted(() => {
 
   .chat-section,
   .preview-section {
-    flex: none;
+    flex: none !important;
     height: 50vh;
+  }
+
+  .resizer {
+    display: none;
   }
 }
 
 @media (max-width: 768px) {
+  #appChatPage {
+    padding: 8px;
+  }
+
   .header-bar {
     padding: 12px 16px;
   }
