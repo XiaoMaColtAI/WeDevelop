@@ -2,6 +2,7 @@ package org.example.wedevelop.service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import org.example.wedevelop.model.dto.app.AppAddRequest;
 import org.example.wedevelop.model.dto.app.AppQueryRequest;
 import org.example.wedevelop.model.entity.App;
 import org.example.wedevelop.model.entity.User;
@@ -54,4 +55,13 @@ public interface AppService extends IService<App> {
     String deployApp(Long appId, User loginUser);
 
     void generateAppScreenshotAsync(Long appId, String appUrl);
+
+    /**
+     * 创建应用
+     *
+     * @param appAddRequest
+     * @param loginUser
+     * @return
+     */
+    Long createApp(AppAddRequest appAddRequest, User loginUser);
 }
