@@ -22,6 +22,9 @@ spring:
       store-type: redis
       # session 30 天过期
       timeout: 2592000
+# 应用部署配置
+code:
+  deploy-host: http://localhost
 server:
   port: 8123
   servlet:
