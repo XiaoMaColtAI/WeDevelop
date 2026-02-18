@@ -70,6 +70,44 @@
           </div>
         </div>
 
+        <!-- 选中元素信息展示 -->
+        <a-alert
+          v-if="selectedElementInfo"
+          class="selected-element-alert"
+          type="info"
+          closable
+          @close="clearSelectedElement"
+        >
+          <template #message>
+            <div class="selected-element-info">
+              <div class="element-header">
+                <span class="element-tag">
+                  选中元素：{{ selectedElementInfo.tagName.toLowerCase() }}
+                </span>
+                <span v-if="selectedElementInfo.id" class="element-id">
+                  #{{ selectedElementInfo.id }}
+                </span>
+                <span v-if="selectedElementInfo.className" class="element-class">
+                  .{{ selectedElementInfo.className.split(' ').join('.') }}
+                </span>
+              </div>
+              <div class="element-details">
+                <div v-if="selectedElementInfo.textContent" class="element-item">
+                  内容: {{ selectedElementInfo.textContent.substring(0, 50) }}
+                  {{ selectedElementInfo.textContent.length > 50 ? '...' : '' }}
+                </div>
+                <div v-if="selectedElementInfo.pagePath" class="element-item">
+                  页面路径: {{ selectedElementInfo.pagePath }}
+                </div>
+                <div class="element-item">
+                  选择器:
+                  <code class="element-selector-code">{{ selectedElementInfo.selector }}</code>
+                </div>
+              </div>
+            </div>
+          </template>
+        </a-alert>
+
         <!-- 用户消息输入框 -->
         <div class="input-container">
           <div class="input-wrapper">
@@ -127,7 +165,20 @@
         <div class="preview-header">
           <h3>生成后的网页展示</h3>
           <div class="preview-actions">
-            <a-button v-if="previewUrl" type="link" @click="openInNewTab">
+            <a-button
+              v-if="isOwner && previewUrl"
+              type="link"
+              :danger="isEditMode"
+              @click="handleEditModeClick"
+              :class="{ 'edit-mode-active': isEditMode }"
+              style="margin-right: 12px"
+            >
+              <template #icon>
+                <EditOutlined />
+              </template>
+              {{ isEditMode ? '退出编辑' : '编辑模式' }}
+            </a-button>
+            <a-button v-if="previewUrl" type="link" @click="openInNewTab" style="margin-right: 12px">
               <template #icon>
                 <ExportOutlined />
               </template>
@@ -198,7 +249,9 @@ import {
   ExportOutlined,
   InfoCircleOutlined,
   DownloadOutlined,
+  EditOutlined,
 } from '@ant-design/icons-vue'
+import { VisualEditor, type ElementInfo } from '@/utils/visualEditor'
 
 const route = useRoute()
 const router = useRouter()
@@ -244,6 +297,15 @@ const deployUrl = ref('')
 
 // 下载相关
 const downloading = ref(false)
+
+// 可视化编辑相关
+const isEditMode = ref(false)
+const selectedElementInfo = ref<ElementInfo | null>(null)
+const visualEditor = new VisualEditor({
+  onElementSelected: (elementInfo: ElementInfo) => {
+    selectedElementInfo.value = elementInfo
+  },
+})
 
 // 权限相关
 const isOwner = computed(() => {
@@ -622,6 +684,49 @@ const openDeployedSite = () => {
 // iframe加载完成
 const onIframeLoad = () => {
   previewReady.value = true
+  visualEditor.onIframeLoad()
+}
+
+// 处理编辑模式点击
+const handleEditModeClick = () => {
+  if (!isEditMode.value) {
+    // 检查 iframe 是否已经加载
+    const iframe = document.querySelector('.preview-iframe') as HTMLIFrameElement
+    if (!iframe) {
+      message.warning('请等待页面加载完成')
+      return
+    }
+    // 确保 visualEditor 已初始化
+    if (!previewReady.value) {
+      message.warning('请等待页面加载完成')
+      return
+    }
+    visualEditor.init(iframe)
+    toggleEditMode()
+  } else {
+    toggleEditMode()
+  }
+}
+
+const toggleEditMode = () => {
+  // 检查 iframe 是否已经加载
+  const iframe = document.querySelector('.preview-iframe') as HTMLIFrameElement
+  if (!iframe) {
+    message.warning('请等待页面加载完成')
+    return
+  }
+  // 确保 visualEditor 已初始化
+  if (!previewReady.value) {
+    message.warning('请等待页面加载完成')
+    return
+  }
+  const newEditMode = visualEditor.toggleEditMode()
+  isEditMode.value = newEditMode
+}
+
+const clearSelectedElement = () => {
+  selectedElementInfo.value = null
+  visualEditor.clearSelection()
 }
 
 // 编辑应用
@@ -684,6 +789,10 @@ const handleResizeEnd = () => {
 // 页面加载时获取应用信息
 onMounted(() => {
   fetchAppInfo()
+  // 监听 iframe 消息
+  window.addEventListener('message', (event) => {
+    visualEditor.handleIframeMessage(event)
+  })
 })
 
 // 清理资源
@@ -943,6 +1052,64 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+/* 编辑模式激活状态 */
+.edit-mode-active {
+  color: #ff4d4f !important;
+}
+
+/* 选中元素信息展示 */
+.selected-element-alert {
+  margin: 0 16px 16px;
+  border-radius: 8px;
+}
+
+.selected-element-info {
+  font-size: 13px;
+}
+
+.element-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.element-tag {
+  font-weight: 500;
+  color: #1890ff;
+}
+
+.element-id {
+  color: #52c41a;
+  font-family: monospace;
+}
+
+.element-class {
+  color: #fa8c16;
+  font-family: monospace;
+}
+
+.element-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.element-item {
+  color: #666;
+  font-size: 12px;
+}
+
+.element-selector-code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #333;
 }
 
 /* 响应式设计 */
