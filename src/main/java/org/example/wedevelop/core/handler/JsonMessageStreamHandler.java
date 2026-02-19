@@ -7,6 +7,8 @@ import cn.hutool.json.JSONUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.example.wedevelop.ai.model.message.*;
+import org.example.wedevelop.ai.tools.ToolManager;
+import org.example.wedevelop.ai.tools.BaseTool;
 import org.example.wedevelop.constant.AppConstant;
 import org.example.wedevelop.core.builder.VueProjectBuilder;
 import org.example.wedevelop.model.entity.User;
@@ -28,6 +30,9 @@ public class JsonMessageStreamHandler {
 
     @Resource
     private VueProjectBuilder vueProjectBuilder;
+
+    @Resource
+    private ToolManager toolManager;
 
     /**
      * 处理 TokenStream（VUE_PROJECT）
@@ -88,11 +93,15 @@ public class JsonMessageStreamHandler {
             case TOOL_REQUEST -> {
                 ToolExecutedMessage toolRequestMessage = JSONUtil.toBean(chunk, ToolExecutedMessage.class);
                 String toolId = toolRequestMessage.getId();
+                String toolName = toolRequestMessage.getName();
                 // 检查是否是第一次看到这个工具 ID
                 if (toolId != null && !seenToolIds.contains(toolId)) {
                     // 第一次调用这个工具，记录 ID 并完整返回工具信息
                     seenToolIds.add(toolId);
-                    return "\n\n[选择工具] 写入文件\n\n";
+                    // 根据工具名称获取工具实例
+                    BaseTool tool = toolManager.getTool(toolName);
+                    // 返回格式化的工具调用信息
+                    return tool.generateToolRequestResponse();
                 } else {
                     // 不是第一次调用这个工具，直接返回空
                     return "";
