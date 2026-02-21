@@ -1,6 +1,7 @@
 package org.example.wedevelop.langgraph4j.state;
 
 import org.example.wedevelop.langgraph4j.model.ImageResource;
+import org.example.wedevelop.langgraph4j.model.QualityResult;
 import org.example.wedevelop.model.enums.CodeGenTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -71,6 +72,11 @@ public class WorkflowContext implements Serializable {
      * 错误信息
      */
     private String errorMessage;
+
+    /**
+     * 代码质量检查结果
+     */
+    private QualityResult qualityResult;
 
     @Serial
     private static final long serialVersionUID = 1L;
