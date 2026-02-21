@@ -23,6 +23,7 @@ import org.example.wedevelop.model.enums.CodeGenTypeEnum;
 import org.example.wedevelop.model.vo.AppVO;
 import org.example.wedevelop.service.ProjectDownloadService;
 import org.example.wedevelop.service.UserService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
@@ -38,8 +39,6 @@ import java.util.Map;
 
 /**
  * 应用 控制层。
- *
- * @author <a href="https://github.com/SeeWorldOr">SeeWorldOr</a>
  */
 @RestController
 @RequestMapping("/app")
@@ -175,6 +174,11 @@ public class AppController {
      * @return 精选应用列表
      */
     @PostMapping("/good/list/page/vo")
+    @Cacheable(
+            value = "good_app_page",
+            key = "T(org.example.wedevelop.utils.CacheKeyUtils).generateKey(#appQueryRequest)",
+            condition = "#appQueryRequest.pageNum <= 10"
+    )
     public BaseResponse<Page<AppVO>> listGoodAppVOByPage(@RequestBody AppQueryRequest appQueryRequest) {
         ThrowUtils.throwIf(appQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 限制每页最多 20 个

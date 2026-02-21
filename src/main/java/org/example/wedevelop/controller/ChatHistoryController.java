@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * 对话历史 控制层
- *
- * @author <a href="https://github.com/SeeWorldOr">SeeWorldOr</a>
  */
 @RestController
 @RequestMapping("/chatHistory")

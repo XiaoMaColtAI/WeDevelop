@@ -2,7 +2,7 @@
   <a-layout-footer class="global-footer">
     <div class="footer-content">
       <p class="copyright">
-        © 2025 Developed By SeeWorld
+        © 2026 Developed By XiaoMaColtAI
       </p>
     </div>
   </a-layout-footer>
