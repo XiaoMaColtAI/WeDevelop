@@ -25,7 +25,7 @@ public class ReasoningStreamingChatModelConfig {
     public StreamingChatModel reasoningStreamingChatModel() {
 
         // 方便测试临时修改
-        final String modelName = "deepseek-chat";
+        final String modelName = "glm-4.7";
         final int maxTokens = 8192;
         // 生产环境使用：
         // final String modelName = "deepseek-reasoner";
