@@ -1,5 +1,6 @@
 package org.example.wedevelop.langgraph4j;
 
+import cn.hutool.json.JSONUtil;
 import org.example.wedevelop.langgraph4j.node.*;
 import org.example.wedevelop.langgraph4j.state.WorkflowContext;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +10,10 @@ import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.NodeOutput;
 import org.bsc.langgraph4j.prebuilt.MessagesState;
 import org.bsc.langgraph4j.prebuilt.MessagesStateGraph;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.bsc.langgraph4j.StateGraph.END;
