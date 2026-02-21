@@ -10,6 +10,7 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.example.wedevelop.ai.guardrail.PromptSafetyInputGuardrail;
 import org.example.wedevelop.ai.tools.*;
 import org.example.wedevelop.exception.BusinessException;
 import org.example.wedevelop.exception.ErrorCode;
@@ -115,6 +116,7 @@ public class AiCodeGeneratorServiceFactory {
                                 ToolExecutionResultMessage.from(toolExecutionRequest,
                                         "Error: there is no tool called " + toolExecutionRequest.name())
                         )
+                        .inputGuardrails(new PromptSafetyInputGuardrail()) // 添加输入护轨
                         .build();
             }
             // HTML 和多文件生成使用默认模型
@@ -125,6 +127,7 @@ public class AiCodeGeneratorServiceFactory {
                         .chatModel(chatModel)
                         .streamingChatModel(openAiStreamingChatModel)
                         .chatMemory(chatMemory)
+                        .inputGuardrails(new PromptSafetyInputGuardrail()) // 添加输入护轨
                         .build();
             }
             default -> throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型" + codeGenType.getValue());
