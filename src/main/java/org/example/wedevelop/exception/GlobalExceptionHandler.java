@@ -22,7 +22,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public BaseResponse<?> businessExceptionHandler(BusinessException e) {
-        log.error("BusinessException", e);
+        // 对于未登录、无权限等预期的业务异常，降级为 warn 级别
+        if (e.getCode() == ErrorCode.NOT_LOGIN_ERROR.getCode() ||
+            e.getCode() == ErrorCode.NO_AUTH_ERROR.getCode()) {
+            log.warn("BusinessException: {}", e.getMessage());
+        } else {
+            log.error("BusinessException", e);
+        }
         // 尝试处理 SSE 请求
         if (handleSseError(e.getCode(), e.getMessage())) {
             return null;
