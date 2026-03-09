@@ -29,7 +29,7 @@ WeDevelop 是一个基于 **Spring Boot** 和 **LangGraph4j** 的 **AI 零代码
 
 ## 🎬 演示
 
-![WeDevelop 演示](img/WeDevelop-演示 gif.gif)
+![WeDevelop 演示](img/WeDevelop-演示gif.gif)
 
 ## ✨ 特性
 
