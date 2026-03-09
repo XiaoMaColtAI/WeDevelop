@@ -1,0 +1,48 @@
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://api.deepseek.com
+      api-key: sk-xxx
+      model-name: deepseek-chat
+      max-tokens: 8192
+#      strict-json-schema: true
+#      response-format: json_object
+      log-requests: true
+      log-responses: true
+      max-retries: 3
+    streaming-chat-model:
+      base-url: https://api.deepseek.com
+      api-key: sk-xxx
+      model-name: deepseek-chat
+      max-tokens: 8192
+#      strict-json-schema: true
+      log-requests: true
+      log-responses: true
+    # 推理 AI 模型配置（用于复杂的推理任务）
+    reasoning-streaming-chat-model:
+      base-url: https://api.deepseek.com
+      api-key: sk-xxx
+      model-name: deepseek-chat
+      max-tokens: 8192
+      temperature: 0.7
+      log-requests: true
+      log-responses: true
+    # 智能路由 AI 模型配置（用于简单的分类任务）
+    routing-chat-model:
+      base-url: https://api.deepseek.com
+      api-key: sk-xxx
+      model-name: deepseek-chat
+      log-requests: true
+      log-responses: true
+# 添加 COS 对象存储配置
+cos:
+  client:
+    host: https://example.com
+    secretId: xxx
+    secretKey: xxx
+    region: xxx
+    bucket: xxx
+
+# Pexels 图片搜索配置
+pexels:
+  api-key: xxx
